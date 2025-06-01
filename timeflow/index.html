@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Queue-less Appointment Booking System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <meta name="description" content="Lovable Generated Project" />
+    <meta name="author" content="Lovable" />
+    <meta property="og:title" content="time-flow-bookings" />
+    <meta property="og:description" content="Lovable Generated Project" />
+    <meta property="og:type" content="website" />
+    <meta property="og:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:site" content="@lovable_dev" />
+    <meta name="twitter:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
+    
+    <style>
+      :root {
+          --primary-color: #4e73df;
+          --secondary-color: #1cc88a;
+          --dark-color: #5a5c69;
+          --light-color: #f8f9fc;
+          --danger-color: #e74a3b;
+          --warning-color: #f6c23e;
+          --info-color: #36b9cc;
+      }
+
+      * {
+          margin: 0;
+          padding: 0;
+          box-sizing: border-box;
+      }
+
+      body {
+          font-family: 'Nunito', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+          background-color: var(--light-color);
+          color: var(--dark-color);
+      }
+
+      .navbar {
+          background-color: white;
+          box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+      }
+
+      .navbar-brand {
+          font-weight: 700;
+          color: var(--primary-color);
+      }
+
+      .hero-section {
+          padding: 5rem 0;
+          background: linear-gradient(135deg, var(--primary-color) 0%, #224abe 100%);
+          color: white;
+      }
+
+      .hero-section h1 {
+          font-weight: 700;
+          margin-bottom: 1.5rem;
+      }
+
+      .hero-section p {
+          font-size: 1.25rem;
+          margin-bottom: 2rem;
+      }
+
+      .feature-card {
+          background-color: white;
+          border-radius: 0.5rem;
+          box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+          transition: transform 0.3s ease;
+          height: 100%;
+      }
+
+      .feature-card:hover {
+          transform: translateY(-5px);
+      }
+
+      .feature-icon {
+          font-size: 2.5rem;
+          color: var(--primary-color);
+          margin-bottom: 1rem;
+      }
+
+      .btn-primary {
+          background-color: var(--primary-color);
+          border-color: var(--primary-color);
+      }
+
+      .btn-primary:hover {
+          background-color: #2e59d9;
+          border-color: #2653d4;
+      }
+
+      .btn-success {
+          background-color: var(--secondary-color);
+          border-color: var(--secondary-color);
+      }
+
+      .btn-success:hover {
+          background-color: #17a673;
+          border-color: #169b6b;
+      }
+
+      .footer {
+          background-color: white;
+          padding: 2rem 0;
+          margin-top: 3rem;
+          box-shadow: 0 -0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+      }
+
+      @media (max-width: 768px) {
+          .hero-section {
+              padding: 3rem 0;
+          }
+          
+          .hero-section h1 {
+              font-size: 2rem;
+          }
+      }
+    </style>
+  </head>
+
+  <body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-light">
+        <div class="container">
+            <a class="navbar-brand" href="index.html">QueueLess</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="index.html">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="services.html">Services</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="about.html">About</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="contact.html">Contact</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link btn btn-primary text-white ms-2 px-3" href="login.html">Login</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero-section">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-6">
+                    <h1>Book Appointments Without Waiting in Line</h1>
+                    <p>Schedule your appointments online and track your position in real-time. No more waiting in queues!</p>
+                    <div class="d-flex gap-3">
+                        <a href="book-now.html" class="btn btn-light btn-lg">Book Now</a>
+                        <a href="register.html" class="btn btn-outline-light btn-lg">Register</a>
+                    </div>
+                </div>
+                <div class="col-lg-6 d-none d-lg-block">
+                    <img src="https://via.placeholder.com/600x400" alt="Appointment Booking" class="img-fluid rounded shadow">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="py-5">
+        <div class="container">
+            <div class="text-center mb-5">
+                <h2 class="fw-bold">How It Works</h2>
+                <p class="text-muted">Simple steps to book your appointment</p>
+            </div>
+            <div class="row g-4">
+                <div class="col-md-4">
+                    <div class="feature-card p-4 text-center">
+                        <div class="feature-icon">
+                            <i class="fas fa-search"></i>
+                        </div>
+                        <h4>Find a Service</h4>
+                        <p>Browse through our list of service providers and find the one that suits your needs.</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="feature-card p-4 text-center">
+                        <div class="feature-icon">
+                            <i class="fas fa-calendar-check"></i>
+                        </div>
+                        <h4>Book Your Slot</h4>
+                        <p>Select your preferred date and time slot from the available options.</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="feature-card p-4 text-center">
+                        <div class="feature-icon">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <h4>Track in Real-Time</h4>
+                        <p>Track your position in the queue and estimated wait time in real-time.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Services Section -->
+    <section class="py-5 bg-light">
+        <div class="container">
+            <div class="text-center mb-5">
+                <h2 class="fw-bold">Popular Services</h2>
+                <p class="text-muted">Book appointments for various services</p>
+            </div>
+            <div class="row g-4">
+                <div class="col-md-3 col-sm-6">
+                    <div class="card h-100">
+                        <img src="https://via.placeholder.com/300x200" class="card-img-top" alt="Medical">
+                        <div class="card-body">
+                            <h5 class="card-title">Medical</h5>
+                            <p class="card-text">Book appointments with doctors and specialists.</p>
+                            <a href="services.html#medical" class="btn btn-sm btn-primary">View All</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 col-sm-6">
+                    <div class="card h-100">
+                        <img src="https://via.placeholder.com/300x200" class="card-img-top" alt="Dental">
+                        <div class="card-body">
+                            <h5 class="card-title">Dental</h5>
+                            <p class="card-text">Schedule your dental check-ups and treatments.</p>
+                            <a href="services.html#dental" class="btn btn-sm btn-primary">View All</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 col-sm-6">
+                    <div class="card h-100">
+                        <img src="https://via.placeholder.com/300x200" class="card-img-top" alt="Salon">
+                        <div class="card-body">
+                            <h5 class="card-title">Salon</h5>
+                            <p class="card-text">Book your hair, nail, and beauty treatments.</p>
+                            <a href="services.html#salon" class="btn btn-sm btn-primary">View All</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 col-sm-6">
+                    <div class="card h-100">
+                        <img src="https://via.placeholder.com/300x200" class="card-img-top" alt="Banking">
+                        <div class="card-body">
+                            <h5 class="card-title">Banking</h5>
+                            <p class="card-text">Schedule meetings with bank representatives.</p>
+                            <a href="services.html#banking" class="btn btn-sm btn-primary">View All</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="text-center mt-4">
+                <a href="services.html" class="btn btn-primary">View All Services</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Testimonials Section -->
+    <section class="py-5">
+        <div class="container">
+            <div class="text-center mb-5">
+                <h2 class="fw-bold">What Our Users Say</h2>
+                <p class="text-muted">Testimonials from our satisfied customers</p>
+            </div>
+            <div class="row g-4">
+                <div class="col-md-4">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <i class="fas fa-star text-warning"></i>
+                                <i class="fas fa-star text-warning"></i>
+                                <i class="fas fa-star text-warning"></i>
+                                <i class="fas fa-star text-warning"></i>
+                                <i class="fas fa-star text-warning"></i>
+                            </div>
+                            <p class="card-text">"This app has completely changed how I book my doctor appointments. No more waiting in queues!"</p>
+                            <div class="d-flex align-items-center mt-3">
+                                <img src="https://via.placeholder.com/50" class="rounded-circle me-3" alt="User">
+                                <div>
+                                    <h6 class="mb-0">John Doe</h6>
+                                    <small class="text-muted">Customer</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <i class="fas fa-star text-warning"></i>
+                                <i class="fas fa-star text-warning"></i>
+                                <i class="fas fa-star text-warning"></i>
+                                <i class="fas fa-star text-warning"></i>
+                                <i class="fas fa-star text-warning"></i>
+                            </div>
+                            <p class="card-text">"As a service provider, this platform has helped me manage my appointments more efficiently. Highly recommended!"</p>
+                            <div class="d-flex align-items-center mt-3">
+                                <img src="https://via.placeholder.com/50" class="rounded-circle me-3" alt="User">
+                                <div>
+                                    <h6 class="mb-0">Jane Smith</h6>
+                                    <small class="text-muted">Service Provider</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <i class="fas fa-star text-warning"></i>
+                                <i class="fas fa-star text-warning"></i>
+                                <i class="fas fa-star text-warning"></i>
+                                <i class="fas fa-star text-warning"></i>
+                                <i class="fas fa-star text-warning"></i>
+                            </div>
+                            <p class="card-text">"The real-time tracking feature is amazing. I know exactly when my turn is coming up. Saves so much time!"</p>
+                            <div class="d-flex align-items-center mt-3">
+                                <img src="https://via.placeholder.com/50" class="rounded-circle me-3" alt="User">
+                                <div>
+                                    <h6 class="mb-0">Robert Johnson</h6>
+                                    <small class="text-muted">Customer</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="py-5 bg-primary text-white">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-8">
+                    <h2 class="fw-bold">Ready to Get Started?</h2>
+                    <p class="mb-0">Join thousands of users who are already enjoying queue-free appointments.</p>
+                </div>
+                <div class="col-lg-4 text-lg-end mt-3 mt-lg-0">
+                    <a href="register.html" class="btn btn-light btn-lg">Register Now</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-4 mb-4 mb-lg-0">
+                    <h5 class="fw-bold">QueueLess</h5>
+                    <p>Book appointments without waiting in line. Track your position in real-time.</p>
+                    <div class="d-flex gap-3">
+                        <a href="#" class="text-dark"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#" class="text-dark"><i class="fab fa-twitter"></i></a>
+                        <a href="#" class="text-dark"><i class="fab fa-instagram"></i></a>
+                        <a href="#" class="text-dark"><i class="fab fa-linkedin-in"></i></a>
+                    </div>
+                </div>
+                <div class="col-lg-2 col-md-4 mb-4 mb-md-0">
+                    <h6 class="fw-bold">Quick Links</h6>
+                    <ul class="list-unstyled">
+                        <li class="mb-2"><a href="index.html" class="text-decoration-none text-dark">Home</a></li>
+                        <li class="mb-2"><a href="services.html" class="text-decoration-none text-dark">Services</a></li>
+                        <li class="mb-2"><a href="about.html" class="text-decoration-none text-dark">About</a></li>
+                        <li class="mb-2"><a href="contact.html" class="text-decoration-none text-dark">Contact</a></li>
+                    </ul>
+                </div>
+                <div class="col-lg-2 col-md-4 mb-4 mb-md-0">
+                    <h6 class="fw-bold">Services</h6>
+                    <ul class="list-unstyled">
+                        <li class="mb-2"><a href="services.html#medical" class="text-decoration-none text-dark">Medical</a></li>
+                        <li class="mb-2"><a href="services.html#dental" class="text-decoration-none text-dark">Dental</a></li>
+                        <li class="mb-2"><a href="services.html#salon" class="text-decoration-none text-dark">Salon</a></li>
+                        <li class="mb-2"><a href="services.html#banking" class="text-decoration-none text-dark">Banking</a></li>
+                    </ul>
+                </div>
+                <div class="col-lg-4 col-md-4">
+                    <h6 class="fw-bold">Contact Us</h6>
+                    <ul class="list-unstyled">
+                        <li class="mb-2"><i class="fas fa-map-marker-alt me-2"></i> 123 Main St, City, Country</li>
+                        <li class="mb-2"><i class="fas fa-phone me-2"></i> +1 234 567 890</li>
+                        <li class="mb-2"><i class="fas fa-envelope me-2"></i> info@queueless.com</li>
+                    </ul>
+                </div>
+            </div>
+            <hr>
+            <div class="row">
+                <div class="col-md-6">
+                    <p class="mb-0">&copy; 2023 QueueLess. All rights reserved.</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <a href="#" class="text-decoration-none text-dark me-3">Privacy Policy</a>
+                    <a href="#" class="text-decoration-none text-dark">Terms of Service</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  </body>
+</html>

@@ -1,0 +1,943 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Provider Dashboard - QueueLess</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        :root {
+            --primary-color: #4e73df;
+            --secondary-color: #1cc88a;
+            --dark-color: #5a5c69;
+            --light-color: #f8f9fc;
+            --danger-color: #e74a3b;
+            --warning-color: #f6c23e;
+            --info-color: #36b9cc;
+        }
+        
+        body {
+            font-family: 'Nunito', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: var(--light-color);
+            color: var(--dark-color);
+        }
+        
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            width: 250px;
+            background-color: white;
+            box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+            padding: 1.5rem;
+            z-index: 1000;
+        }
+        
+        .main-content {
+            margin-left: 250px;
+            padding: 2rem;
+        }
+        
+        .nav-link {
+            color: var(--dark-color);
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            margin-bottom: 0.5rem;
+            transition: all 0.3s;
+        }
+        
+        .nav-link:hover, .nav-link.active {
+            background-color: rgba(78, 115, 223, 0.1);
+            color: var(--primary-color);
+        }
+        
+        .nav-link i {
+            width: 20px;
+            margin-right: 0.5rem;
+        }
+        
+        .card {
+            border: none;
+            border-radius: 0.5rem;
+            box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+            margin-bottom: 1.5rem;
+        }
+        
+        .card-header {
+            background-color: white;
+            border-bottom: 1px solid #e3e6f0;
+            padding: 1rem 1.5rem;
+        }
+        
+        .appointment-card {
+            position: relative;
+            border: 1px solid #e3e6f0;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            transition: all 0.3s;
+            background-color: white;
+        }
+        
+        .appointment-card:hover {
+            border-color: var(--primary-color);
+            box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+        }
+        
+        .customer-info {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        
+        .customer-avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            object-fit: cover;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .customer-info > div {
+            margin-left: 1rem;
+        }
+        
+        .customer-name {
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+        
+        .appointment-time {
+            color: var(--primary-color);
+            font-weight: 600;
+        }
+        
+        .appointment-status {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        
+        .status-upcoming {
+            background-color: rgba(28, 200, 138, 0.2);
+            color: var(--secondary-color);
+        }
+        
+        .status-in-progress {
+            background-color: rgba(78, 115, 223, 0.2);
+            color: var(--primary-color);
+        }
+        
+        .status-completed {
+            background-color: rgba(58, 59, 69, 0.2);
+            color: var(--dark-color);
+        }
+        
+        .status-cancelled {
+            background-color: rgba(231, 74, 59, 0.2);
+            color: var(--danger-color);
+        }
+        
+        .location-map {
+            height: 300px;
+            border-radius: 0.5rem;
+            overflow: hidden;
+        }
+        
+        .btn-primary {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+        
+        .btn-primary:hover {
+            background-color: #2e59d9;
+            border-color: #2653d4;
+        }
+        
+        .btn-success {
+            background-color: var(--secondary-color);
+            border-color: var(--secondary-color);
+        }
+        
+        .btn-success:hover {
+            background-color: #17a673;
+            border-color: #169b6b;
+        }
+        
+        .btn-danger {
+            background-color: var(--danger-color);
+            border-color: var(--danger-color);
+        }
+        
+        .btn-danger:hover {
+            background-color: #d52a1a;
+            border-color: #c52415;
+        }
+        
+        #activeCustomer {
+            background-color: #f8f9fc;
+            padding: 1rem;
+            border-radius: 0.5rem;
+        }
+        
+        .queue-number {
+            position: absolute;
+            left: -10px;
+            top: -10px;
+            background-color: var(--primary-color);
+            color: white;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 0.875rem;
+            border: 2px solid white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .queue-summary {
+            background-color: white;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            justify-content: space-around;
+            text-align: center;
+        }
+
+        .queue-stat {
+            padding: 0.5rem 1rem;
+        }
+
+        .queue-stat h3 {
+            color: var(--primary-color);
+            margin-bottom: 0.25rem;
+            font-weight: bold;
+        }
+
+        .queue-stat p {
+            color: var(--dark-color);
+            margin-bottom: 0;
+            font-size: 0.875rem;
+        }
+
+        .estimated-wait {
+            color: var(--secondary-color);
+            font-weight: 600;
+        }
+
+        .selected-customer-panel {
+            display: none;
+            background: white;
+            border-radius: 0.5rem;
+            box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+            margin-bottom: 1.5rem;
+            padding: 1.5rem;
+        }
+
+        .selected-customer-panel.active {
+            display: block;
+        }
+
+        .customer-details-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #e3e6f0;
+        }
+
+        .customer-details-header img {
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            margin-right: 1rem;
+        }
+
+        .customer-details-info h4 {
+            margin: 0;
+            color: var(--dark-color);
+        }
+
+        .customer-details-info p {
+            margin: 0.25rem 0 0;
+            color: var(--primary-color);
+        }
+
+        .customer-contact-info {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .contact-item {
+            padding: 0.75rem;
+            background: var(--light-color);
+            border-radius: 0.5rem;
+        }
+
+        .contact-item i {
+            color: var(--primary-color);
+            margin-right: 0.5rem;
+        }
+
+        .selected-customer-map {
+            height: 300px;
+            border-radius: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .location-details {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            background: var(--light-color);
+            border-radius: 0.5rem;
+        }
+
+        .location-details i {
+            color: var(--primary-color);
+            margin-right: 0.5rem;
+        }
+
+        .appointment-card {
+            cursor: pointer;
+        }
+
+        .appointment-card.selected {
+            border: 2px solid var(--primary-color);
+            background-color: rgba(78, 115, 223, 0.05);
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <h4 class="mb-4">QueueLess</h4>
+        <nav class="nav flex-column">
+            <a class="nav-link active" href="#">
+                <i class="fas fa-calendar-alt"></i> Appointments
+            </a>
+            <a class="nav-link" href="#">
+                <i class="fas fa-users"></i> Customers
+            </a>
+            <a class="nav-link" href="#">
+                <i class="fas fa-cog"></i> Settings
+            </a>
+            <a class="nav-link" href="#">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </a>
+        </nav>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="row">
+            <!-- Appointments -->
+            <div class="col-lg-8">
+                <!-- Queue Summary Card -->
+                <div class="queue-summary mb-4">
+                    <div class="queue-stat">
+                        <h3 id="totalAppointments">0</h3>
+                        <p>Total Appointments</p>
+                    </div>
+                    <div class="queue-stat">
+                        <h3 id="inQueue">0</h3>
+                        <p>In Queue</p>
+                    </div>
+                    <div class="queue-stat">
+                        <h3 id="avgWaitTime">0 min</h3>
+                        <p>Avg. Wait Time</p>
+                    </div>
+                </div>
+
+                <!-- Appointments List -->
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">Today's Queue</h5>
+                        <div class="btn-group">
+                            <button class="btn btn-sm btn-outline-primary active" data-sort="time">Sort by Time</button>
+                            <button class="btn btn-sm btn-outline-primary" data-sort="status">Sort by Status</button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div id="appointmentsList">
+                            <!-- Appointments will be dynamically inserted here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Customer Location -->
+            <div class="col-lg-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">Customer Location</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="location-map" id="customerMap"></div>
+                        <div class="mt-3" id="customerInfo">
+                            <div id="noCustomer" class="text-center">
+                                <p class="text-muted">No active customer appointments</p>
+                            </div>
+                            <div id="activeCustomer" style="display: none;">
+                                <div class="d-flex align-items-center mb-2">
+                                    <img id="customerAvatar" src="https://ui-avatars.com/api/?name=Active+Customer&background=4e73df&color=fff" 
+                                         class="customer-avatar me-2" alt="Customer">
+                                    <div>
+                                        <h6 id="customerName" class="mb-0">Customer Name</h6>
+                                        <p class="text-muted mb-0" id="customerStatus">Currently on the way</p>
+                                    </div>
+                                </div>
+                                <p class="mb-1"><strong>ETA:</strong> <span id="customerETA">Calculating...</span></p>
+                                <p class="mb-0"><strong>Distance:</strong> <span id="customerDistance">Calculating...</span></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Business Hours -->
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">Business Hours</h5>
+                    </div>
+                    <div class="card-body">
+                        <p class="mb-1"><strong>Monday - Friday:</strong> 9:00 AM - 6:00 PM</p>
+                        <p class="mb-1"><strong>Saturday:</strong> 10:00 AM - 4:00 PM</p>
+                        <p class="mb-0"><strong>Sunday:</strong> Closed</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Dashboard Script -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // In a real application, you would:
+            // 1. Fetch appointments from the server
+            // 2. Update the UI with real-time data
+            // 3. Integrate with a mapping service for customer locations
+            // 4. Handle appointment status changes
+            
+            // Sample code for handling appointment actions
+            const startButtons = document.querySelectorAll('.btn-success');
+            const completeButtons = document.querySelectorAll('.btn-primary');
+            const cancelButtons = document.querySelectorAll('.btn-danger');
+            
+            startButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const appointmentCard = this.closest('.appointment-card');
+                    const statusBadge = appointmentCard.querySelector('.appointment-status');
+                    
+                    statusBadge.className = 'appointment-status status-in-progress ms-2';
+                    statusBadge.textContent = 'In Progress';
+                    
+                    this.textContent = 'Complete';
+                    this.className = 'btn btn-primary btn-sm me-2';
+                });
+            });
+            
+            completeButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const appointmentCard = this.closest('.appointment-card');
+                    const statusBadge = appointmentCard.querySelector('.appointment-status');
+                    
+                    statusBadge.className = 'appointment-status status-completed ms-2';
+                    statusBadge.textContent = 'Completed';
+                    
+                    this.closest('.row').remove();
+                });
+            });
+            
+            cancelButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const appointmentCard = this.closest('.appointment-card');
+                    const statusBadge = appointmentCard.querySelector('.appointment-status');
+                    
+                    statusBadge.className = 'appointment-status status-cancelled ms-2';
+                    statusBadge.textContent = 'Cancelled';
+                    
+                    this.closest('.row').remove();
+                });
+            });
+        });
+    </script>
+
+    <!-- Add these scripts before the closing body tag -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        let customerMap;
+        let customerMarker;
+        let providerMarker;
+        let updateInterval;
+
+        // Initialize the map
+        function initCustomerMap() {
+            customerMap = L.map('customerMap').setView([17.3850, 78.4867], 13);
+            
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors'
+            }).addTo(customerMap);
+
+            // Add provider location marker (this should be the actual provider's location)
+            const providerLocation = { lat: 17.3850, lng: 78.4867 };
+            const providerIcon = L.divIcon({
+                html: '<i class="fas fa-store fa-2x" style="color: #1cc88a;"></i>',
+                className: 'provider-marker',
+                iconSize: [24, 24]
+            });
+
+            providerMarker = L.marker([providerLocation.lat, providerLocation.lng], {
+                icon: providerIcon
+            })
+            .bindPopup('Your Location')
+            .addTo(customerMap);
+
+            // Start tracking customer location
+            startCustomerTracking();
+        }
+
+        // Function to start tracking customer location
+        function startCustomerTracking() {
+            // Check for active booking in localStorage (in a real app, this would come from your server)
+            updateInterval = setInterval(() => {
+                const customerLocationData = JSON.parse(localStorage.getItem('customerLocation'));
+                const bookingData = JSON.parse(localStorage.getItem('currentBooking'));
+
+                if (customerLocationData && bookingData) {
+                    updateCustomerLocation(customerLocationData, bookingData);
+                }
+            }, 1000); // Update every second
+        }
+
+        // Function to update customer location on map
+        function updateCustomerLocation(locationData, bookingData) {
+            const { location, timestamp } = locationData;
+            
+            // Update customer marker
+            if (!customerMarker) {
+                const customerIcon = L.divIcon({
+                    html: `<img src="https://ui-avatars.com/api/?name=${encodeURIComponent(bookingData.customerName || 'Customer')}&background=4e73df&color=fff" 
+                          class="customer-avatar" style="width: 32px; height: 32px; border: 2px solid white; border-radius: 50%;">`,
+                    className: 'customer-marker',
+                    iconSize: [32, 32]
+                });
+
+                customerMarker = L.marker([location.lat, location.lng], {
+                    icon: customerIcon
+                }).addTo(customerMap);
+            } else {
+                customerMarker.setLatLng([location.lat, location.lng]);
+            }
+
+            // Update info panel
+            document.getElementById('noCustomer').style.display = 'none';
+            document.getElementById('activeCustomer').style.display = 'block';
+            
+            // Update customer avatar and name
+            const customerName = bookingData.customerName || 'Active Customer';
+            document.getElementById('customerAvatar').src = `https://ui-avatars.com/api/?name=${encodeURIComponent(customerName)}&background=4e73df&color=fff`;
+            document.getElementById('customerName').textContent = customerName;
+            
+            // Calculate and update ETA and distance
+            const providerLocation = providerMarker.getLatLng();
+            const distance = customerMap.distance(
+                [location.lat, location.lng],
+                [providerLocation.lat, providerLocation.lng]
+            );
+            const distanceKm = (distance / 1000).toFixed(1);
+            
+            // Estimate ETA (assuming average speed of 30 km/h)
+            const etaMinutes = Math.round((distance / 1000) * 2); // Simple estimation
+            
+            document.getElementById('customerDistance').textContent = `${distanceKm} km`;
+            document.getElementById('customerETA').textContent = `${etaMinutes} minutes`;
+            
+            // Update customer status based on distance
+            const statusElement = document.getElementById('customerStatus');
+            if (distance < 100) {
+                statusElement.textContent = 'Customer has arrived';
+                statusElement.style.color = '#1cc88a';
+            } else if (distance < 1000) {
+                statusElement.textContent = 'Customer is very close';
+                statusElement.style.color = '#4e73df';
+            } else {
+                statusElement.textContent = 'Customer is on the way';
+                statusElement.style.color = '#858796';
+            }
+
+            // Fit bounds to show both markers
+            const bounds = L.latLngBounds([
+                [location.lat, location.lng],
+                [providerLocation.lat, providerLocation.lng]
+            ]);
+            customerMap.fitBounds(bounds.pad(0.1));
+        }
+
+        // Initialize map when page loads
+        document.addEventListener('DOMContentLoaded', initCustomerMap);
+
+        // Cleanup when page is unloaded
+        window.addEventListener('beforeunload', () => {
+            if (updateInterval) {
+                clearInterval(updateInterval);
+            }
+        });
+    </script>
+
+    <!-- Add this JavaScript before the closing body tag -->
+    <script>
+        // Sample appointments data (in a real app, this would come from your server)
+        const appointments = [
+            {
+                id: 1,
+                customerName: "John Doe",
+                time: "10:00 AM",
+                service: "Haircut",
+                duration: 30,
+                status: "upcoming",
+                queueNumber: 1,
+                phone: "+1 (555) 123-4567",
+                email: "john.doe@email.com",
+                location: { lat: 17.3850, lng: 78.4867 }, // Example location in Hyderabad
+                avatar: "https://ui-avatars.com/api/?name=John+Doe&background=4e73df&color=fff"
+            },
+            {
+                id: 2,
+                customerName: "Jane Smith",
+                time: "11:30 AM",
+                service: "Manicure",
+                duration: 45,
+                status: "in-progress",
+                queueNumber: 2,
+                phone: "+1 (555) 234-5678",
+                email: "jane.smith@email.com",
+                location: { lat: 17.3891, lng: 78.4818 }, // Different location in Hyderabad
+                avatar: "https://ui-avatars.com/api/?name=Jane+Smith&background=1cc88a&color=fff"
+            },
+            {
+                id: 3,
+                customerName: "Mike Johnson",
+                time: "2:00 PM",
+                service: "Facial",
+                duration: 60,
+                status: "upcoming",
+                queueNumber: 3,
+                phone: "+1 (555) 345-6789",
+                email: "mike.johnson@email.com",
+                location: { lat: 17.3816, lng: 78.4916 }, // Another location in Hyderabad
+                avatar: "https://ui-avatars.com/api/?name=Mike+Johnson&background=36b9cc&color=fff"
+            }
+        ];
+
+        function updateQueueSummary() {
+            const total = appointments.length;
+            const inQueue = appointments.filter(app => app.status === "upcoming").length;
+            const avgWait = calculateAverageWaitTime();
+
+            document.getElementById('totalAppointments').textContent = total;
+            document.getElementById('inQueue').textContent = inQueue;
+            document.getElementById('avgWaitTime').textContent = `${avgWait} min`;
+        }
+
+        function calculateAverageWaitTime() {
+            const upcomingAppointments = appointments.filter(app => app.status === "upcoming");
+            if (upcomingAppointments.length === 0) return 0;
+
+            let totalWait = 0;
+            let currentTime = new Date();
+            currentTime.setHours(9, 0, 0); // Assuming business starts at 9 AM
+
+            upcomingAppointments.forEach(app => {
+                totalWait += app.duration;
+            });
+
+            return Math.round(totalWait / upcomingAppointments.length);
+        }
+
+        function renderAppointments(sortBy = 'time') {
+            const appointmentsList = document.getElementById('appointmentsList');
+            appointmentsList.innerHTML = '';
+
+            // Sort appointments
+            const sortedAppointments = [...appointments].sort((a, b) => {
+                if (sortBy === 'time') {
+                    return new Date('2024/01/01 ' + a.time) - new Date('2024/01/01 ' + b.time);
+                } else {
+                    // Sort by status: in-progress first, then upcoming
+                    return b.status.localeCompare(a.status);
+                }
+            });
+
+            sortedAppointments.forEach(appointment => {
+                const card = document.createElement('div');
+                card.className = 'appointment-card';
+                card.setAttribute('data-queue', appointment.queueNumber);
+                card.innerHTML = `
+                    <div class="queue-number">${appointment.queueNumber}</div>
+                    <div class="customer-info">
+                        <img src="${appointment.avatar}" class="customer-avatar" alt="Customer">
+                        <div>
+                            <h6 class="customer-name">${appointment.customerName}</h6>
+                            <span class="appointment-time">${appointment.time}</span>
+                            <span class="appointment-status status-${appointment.status} ms-2">
+                                ${appointment.status.charAt(0).toUpperCase() + appointment.status.slice(1)}
+                            </span>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p class="mb-1"><strong>Service:</strong> ${appointment.service}</p>
+                            <p class="mb-1"><strong>Duration:</strong> ${appointment.duration} minutes</p>
+                            <p class="mb-0"><strong>Estimated Wait:</strong> 
+                                <span class="estimated-wait">${calculateWaitTime(appointment)} min</span>
+                            </p>
+                        </div>
+                        <div class="col-md-6 text-end">
+                            ${getActionButtons(appointment.status)}
+                        </div>
+                    </div>
+                `;
+
+                // Add click handler to show customer details
+                card.addEventListener('click', () => showCustomerDetails(appointment));
+                appointmentsList.appendChild(card);
+            });
+
+            updateQueueSummary();
+        }
+
+        function calculateWaitTime(appointment) {
+            if (appointment.status !== 'upcoming') return 0;
+            
+            const index = appointments.findIndex(app => app.id === appointment.id);
+            let waitTime = 0;
+            
+            for (let i = 0; i < index; i++) {
+                if (appointments[i].status === 'upcoming' || appointments[i].status === 'in-progress') {
+                    waitTime += appointments[i].duration;
+                }
+            }
+            
+            return waitTime;
+        }
+
+        function getActionButtons(status) {
+            switch (status) {
+                case 'upcoming':
+                    return `
+                        <button class="btn btn-success btn-sm me-2">Start</button>
+                        <button class="btn btn-danger btn-sm">Cancel</button>
+                    `;
+                case 'in-progress':
+                    return `
+                        <button class="btn btn-primary btn-sm me-2">Complete</button>
+                        <button class="btn btn-danger btn-sm">Cancel</button>
+                    `;
+                default:
+                    return '';
+            }
+        }
+
+        // Initialize the appointments list
+        document.addEventListener('DOMContentLoaded', () => {
+            renderAppointments('time');
+
+            // Add sort button listeners
+            document.querySelectorAll('[data-sort]').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    document.querySelectorAll('[data-sort]').forEach(btn => btn.classList.remove('active'));
+                    e.target.classList.add('active');
+                    renderAppointments(e.target.dataset.sort);
+                });
+            });
+        });
+
+        // Add event listeners for appointment actions
+        document.addEventListener('click', (e) => {
+            if (e.target.matches('.btn-success')) {
+                const card = e.target.closest('.appointment-card');
+                const queueNumber = card.querySelector('.queue-number').textContent;
+                const appointment = appointments.find(app => app.queueNumber === parseInt(queueNumber));
+                if (appointment) {
+                    appointment.status = 'in-progress';
+                    renderAppointments(document.querySelector('[data-sort].active').dataset.sort);
+                }
+            } else if (e.target.matches('.btn-primary')) {
+                const card = e.target.closest('.appointment-card');
+                const queueNumber = card.querySelector('.queue-number').textContent;
+                const appointment = appointments.find(app => app.queueNumber === parseInt(queueNumber));
+                if (appointment) {
+                    appointment.status = 'completed';
+                    renderAppointments(document.querySelector('[data-sort].active').dataset.sort);
+                }
+            } else if (e.target.matches('.btn-danger')) {
+                const card = e.target.closest('.appointment-card');
+                const queueNumber = card.querySelector('.queue-number').textContent;
+                const appointmentIndex = appointments.findIndex(app => app.queueNumber === parseInt(queueNumber));
+                if (appointmentIndex !== -1) {
+                    appointments.splice(appointmentIndex, 1);
+                    renderAppointments(document.querySelector('[data-sort].active').dataset.sort);
+                }
+            }
+        });
+    </script>
+
+    <!-- Add this JavaScript before the closing body tag -->
+    <script>
+        let selectedCustomerMap;
+        let selectedCustomerMarker;
+        let providerMarkerOnSelected;
+
+        function initSelectedCustomerMap() {
+            if (!selectedCustomerMap) {
+                selectedCustomerMap = L.map('selectedCustomerMap').setView([17.3850, 78.4867], 13);
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '© OpenStreetMap contributors'
+                }).addTo(selectedCustomerMap);
+            }
+        }
+
+        function showCustomerDetails(appointment) {
+            // Show the panel
+            const panel = document.getElementById('selectedCustomerPanel');
+            panel.classList.add('active');
+
+            // Update customer information
+            document.getElementById('selectedCustomerAvatar').src = appointment.avatar;
+            document.getElementById('selectedCustomerName').textContent = appointment.customerName;
+            document.getElementById('selectedCustomerAppointment').textContent = 
+                `Queue #${appointment.queueNumber} - ${appointment.status.charAt(0).toUpperCase() + appointment.status.slice(1)}`;
+            document.getElementById('selectedCustomerPhone').textContent = appointment.phone;
+            document.getElementById('selectedCustomerEmail').textContent = appointment.email;
+            document.getElementById('selectedCustomerTime').textContent = `${appointment.time} (${appointment.duration} min)`;
+            document.getElementById('selectedCustomerService').textContent = appointment.service;
+
+            // Initialize and update the map
+            initSelectedCustomerMap();
+            updateSelectedCustomerLocation(appointment);
+
+            // Remove selection from all cards and select the current one
+            document.querySelectorAll('.appointment-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            const selectedCard = document.querySelector(`[data-queue="${appointment.queueNumber}"]`);
+            if (selectedCard) {
+                selectedCard.classList.add('selected');
+            }
+        }
+
+        function updateSelectedCustomerLocation(appointment) {
+            const providerLocation = { lat: 17.3850, lng: 78.4867 }; // Your business location
+
+            // Clear existing markers
+            if (selectedCustomerMarker) selectedCustomerMap.removeLayer(selectedCustomerMarker);
+            if (providerMarkerOnSelected) selectedCustomerMap.removeLayer(providerMarkerOnSelected);
+
+            // Add provider marker
+            const providerIcon = L.divIcon({
+                html: '<i class="fas fa-store fa-2x" style="color: #1cc88a;"></i>',
+                className: 'provider-marker',
+                iconSize: [24, 24]
+            });
+            providerMarkerOnSelected = L.marker([providerLocation.lat, providerLocation.lng], {
+                icon: providerIcon
+            }).addTo(selectedCustomerMap);
+
+            // Add customer marker
+            const customerIcon = L.divIcon({
+                html: `<img src="${appointment.avatar}" class="customer-avatar" style="width: 32px; height: 32px; border: 2px solid white; border-radius: 50%;">`,
+                className: 'customer-marker',
+                iconSize: [32, 32]
+            });
+            selectedCustomerMarker = L.marker([appointment.location.lat, appointment.location.lng], {
+                icon: customerIcon
+            }).addTo(selectedCustomerMap);
+
+            // Fit bounds to show both markers
+            const bounds = L.latLngBounds([
+                [appointment.location.lat, appointment.location.lng],
+                [providerLocation.lat, providerLocation.lng]
+            ]);
+            selectedCustomerMap.fitBounds(bounds.pad(0.1));
+
+            // Calculate distance and ETA
+            const distance = selectedCustomerMap.distance(
+                [appointment.location.lat, appointment.location.lng],
+                [providerLocation.lat, providerLocation.lng]
+            );
+            const distanceKm = (distance / 1000).toFixed(1);
+            const etaMinutes = Math.round((distance / 1000) * 2); // Simple estimation
+
+            // Update location details
+            document.getElementById('selectedCustomerETA').textContent = `${etaMinutes} minutes away`;
+            
+            // Reverse geocode the customer's location (simulated here)
+            document.getElementById('selectedCustomerAddress').textContent = 
+                `${distanceKm} km from your location`;
+        }
+
+        // Add this to your existing event listeners
+        document.addEventListener('DOMContentLoaded', () => {
+            renderAppointments('time');
+            
+            // Show first appointment details by default
+            if (appointments.length > 0) {
+                showCustomerDetails(appointments[0]);
+            }
+
+            // Add sort button listeners
+            document.querySelectorAll('[data-sort]').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    document.querySelectorAll('[data-sort]').forEach(btn => btn.classList.remove('active'));
+                    e.target.classList.add('active');
+                    renderAppointments(e.target.dataset.sort);
+                });
+            });
+        });
+
+        // Update the click event listener for appointment actions
+        document.addEventListener('click', (e) => {
+            if (e.target.matches('.btn-success, .btn-primary, .btn-danger')) {
+                e.stopPropagation(); // Prevent the appointment card click event
+                const card = e.target.closest('.appointment-card');
+                const queueNumber = card.querySelector('.queue-number').textContent;
+                const appointment = appointments.find(app => app.queueNumber === parseInt(queueNumber));
+                
+                if (appointment) {
+                    if (e.target.matches('.btn-success')) {
+                        appointment.status = 'in-progress';
+                    } else if (e.target.matches('.btn-primary')) {
+                        appointment.status = 'completed';
+                    } else if (e.target.matches('.btn-danger')) {
+                        const index = appointments.findIndex(app => app.queueNumber === parseInt(queueNumber));
+                        if (index !== -1) {
+                            appointments.splice(index, 1);
+                        }
+                    }
+                    renderAppointments(document.querySelector('[data-sort].active').dataset.sort);
+                    
+                    // Update selected customer details if this appointment is selected
+                    if (card.classList.contains('selected')) {
+                        showCustomerDetails(appointment);
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html> 

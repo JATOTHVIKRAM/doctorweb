@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customer Dashboard - Queue-less Appointment Booking System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #4e73df;
+            --secondary-color: #1cc88a;
+            --dark-color: #5a5c69;
+            --light-color: #f8f9fc;
+            --danger-color: #e74a3b;
+            --warning-color: #f6c23e;
+            --info-color: #36b9cc;
+        }
+        
+        body {
+            font-family: 'Nunito', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: var(--light-color);
+            color: var(--dark-color);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .sidebar {
+            position: fixed;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            z-index: 100;
+            padding: 0;
+            box-shadow: inset -1px 0 0 rgba(0, 0, 0, .1);
+            background-color: white;
+            width: 250px;
+        }
+        
+        .sidebar-sticky {
+            position: sticky;
+            top: 0;
+            height: calc(100vh - 48px);
+            padding-top: .5rem;
+            overflow-x: hidden;
+            overflow-y: auto;
+        }
+        
+        .sidebar .nav-link {
+            font-weight: 500;
+            color: var(--dark-color);
+            padding: 0.75rem 1rem;
+            display: flex;
+            align-items: center;
+        }
+        
+        .sidebar .nav-link i {
+            margin-right: 0.75rem;
+            color: #858796;
+        }
+        
+        .sidebar .nav-link.active {
+            color: var(--primary-color);
+            background-color: rgba(78, 115, 223, 0.1);
+        }
+        
+        .sidebar .nav-link.active i {
+            color: var(--primary-color);
+        }
+        
+        .sidebar .nav-link:hover {
+            color: var(--primary-color);
+        }
+        
+        .sidebar .nav-link:hover i {
+            color: var(--primary-color);
+        }
+        
+        .sidebar-heading {
+            font-size: .75rem;
+            text-transform: uppercase;
+            padding: 1rem;
+            color: #858796;
+        }
+        
+        .navbar-brand {
+            padding-top: .75rem;
+            padding-bottom: .75rem;
+            font-size: 1rem;
+            background-color: rgba(0, 0, 0, .25);
+            box-shadow: inset -1px 0 0 rgba(0, 0, 0, .25);
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+        
+        .navbar .navbar-toggler {
+            top: .25rem;
+            right: 1rem;
+        }
+        
+        .main-content {
+            margin-left: 250px;
+            padding: 1.5rem;
+        }
+        
+        .dashboard-header {
+            margin-bottom: 1.5rem;
+        }
+        
+        .dashboard-header h1 {
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+        
+        .welcome-card {
+            background-color: white;
+            border-radius: 0.5rem;
+            box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+        }
+        
+        .welcome-card .avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-right: 1.5rem;
+        }
+        
+        .welcome-card .welcome-text h2 {
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+        
+        .welcome-card .welcome-text p {
+            color: #858796;
+            margin-bottom: 0;
+        }
+        
+        .quick-actions {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        
+        .quick-actions .btn {
+            flex: 1;
+        }
+        
+        .appointment-card {
+            background-color: white;
+            border-radius: 0.5rem;
+            box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            transition: transform 0.3s;
+        }
+        
+        .appointment-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .appointment-card .appointment-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid #e3e6f0;
+        }
+        
+        .appointment-card .appointment-title {
+            font-weight: 700;
+            margin-bottom: 0;
+        }
+        
+        .appointment-card .appointment-status {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        
+        .appointment-card .status-upcoming {
+            background-color: rgba(78, 115, 223, 0.2);
+            color: var(--primary-color);
+        }
+        
+        .appointment-card .status-completed {
+            background-color: rgba(28, 200, 138, 0.2);
+            color: var(--secondary-color);
+        }
+        
+        .appointment-card .status-cancelled {
+            background-color: rgba(231, 74, 59, 0.2);
+            color: var(--danger-color);
+        }
+        
+        .appointment-card .appointment-details {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .appointment-card .detail-item {
+            display: flex;
+            align-items: center;
+        }
+        
+        .appointment-card .detail-item i {
+            color: var(--primary-color);
+            margin-right: 0.5rem;
+            width: 16px;
+        }
+        
+        .appointment-card .appointment-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        .appointment-card .appointment-actions .btn {
+            flex: 1;
+        }
+        
+        .upcoming-appointments {
+            margin-bottom: 2rem;
+        }
+        
+        .upcoming-appointments h3 {
+            font-weight: 700;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid #e3e6f0;
+        }
+        
+        .book-appointment-card {
+            background-color: white;
+            border-radius: 0.5rem;
+            box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+        
+        .book-appointment-card .icon {
+            font-size: 3rem;
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+        }
+        
+        .book-appointment-card h3 {
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+        
+        .book-appointment-card p {
+            color: #858796;
+            margin-bottom: 1.5rem;
+        }
+        
+        .book-appointment-card .btn {
+            width: 100%;
+        }
+        
+        .history-section h3 {
+            font-weight: 700;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid #e3e6f0;
+        }
+        
+        .no-appointments {
+            text-align: center;
+            padding: 2rem;
+            color: #858796;
+        }
+        
+        .no-appointments i {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            color: #d1d3e2;
+        }
+        
+        .no-appointments h4 {
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+        
+        .no-appointments p {
+            max-width: 300px;
+            margin: 0 auto 1.5rem;
+        }
+        
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 100%;
+                position: relative;
+                height: auto;
+            }
+            
+            .main-content {
+                margin-left: 0;
+            }
+            
+            .welcome-card {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .welcome-card .avatar {
+                margin-right: 0;
+                margin-bottom: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <nav class="sidebar">
+        <div class="sidebar-sticky">
+            <a class="navbar-brand d-flex align-items-center justify-content-center" href="index.html">
+                <i class="fas fa-calendar-check me-2"></i>
+                QueueLess
+            </a>
+            <ul class="nav flex-column">
+                <li class="nav-item">
+                    <a class="nav-link active" href="customer-dashboard.html">
+                        <i class="fas fa-tachometer-alt"></i>
+                        Dashboard
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="services.html">
+                        <i class="fas fa-calendar-alt"></i>
+                        Book Appointment
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#">
+                        <i class="fas fa-history"></i>
+                        History
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#">
+                        <i class="fas fa-user"></i>
+                        Profile
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#">
+                        <i class="fas fa-cog"></i>
+                        Settings
+                    </a>
+                </li>
+            </ul>
+            
+            <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
+                <span>Account</span>
+            </h6>
+            <ul class="nav flex-column mb-2">
+                <li class="nav-item">
+                    <a class="nav-link" href="index.html">
+                        <i class="fas fa-sign-out-alt"></i>
+                        Logout
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="dashboard-header">
+            <h1>Customer Dashboard</h1>
+            <p class="lead">Manage your appointments and track your queue status</p>
+        </div>
+        
+        <!-- Welcome Card -->
+        <div class="col-lg-6 mb-4">
+            <div class="welcome-card">
+                <img src="https://images.unsplash.com/photo-1633332755192-727a05c4013d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=880&q=80" alt="User Avatar" class="avatar">
+                <div class="welcome-text">
+                    <h2>Welcome back, [Customer Name]!</h2>
+                    <p>Here's an overview of your upcoming appointments and queue status.</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row">
+            <!-- Upcoming Appointments -->
+            <div class="col-lg-8">
+                <div class="upcoming-appointments">
+                    <h3>Upcoming Appointments</h3>
+                    
+                    <div class="appointment-card">
+                        <div class="appointment-header">
+                            <h4 class="appointment-title">General Check-up</h4>
+                            <span class="appointment-status status-upcoming">Upcoming</span>
+                        </div>
+                        <div class="appointment-details">
+                            <div class="detail-item">
+                                <i class="fas fa-calendar"></i>
+                                <span>Today, June 15, 2023</span>
+                            </div>
+                            <div class="detail-item">
+                                <i class="fas fa-clock"></i>
+                                <span>10:30 AM</span>
+                            </div>
+                            <div class="detail-item">
+                                <i class="fas fa-user-md"></i>
+                                <span>Dr. Smith</span>
+                            </div>
+                            <div class="detail-item">
+                                <i class="fas fa-map-marker-alt"></i>
+                                <span>123 Medical Center, San Francisco</span>
+                            </div>
+                        </div>
+                        <div class="appointment-actions">
+                            <button class="btn btn-outline-primary">
+                                <i class="fas fa-map me-2"></i>Directions
+                            </button>
+                            <button class="btn btn-outline-danger">
+                                <i class="fas fa-times me-2"></i>Cancel
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="appointment-card">
+                        <div class="appointment-header">
+                            <h4 class="appointment-title">Dental Cleaning</h4>
+                            <span class="appointment-status status-upcoming">Upcoming</span>
+                        </div>
+                        <div class="appointment-details">
+                            <div class="detail-item">
+                                <i class="fas fa-calendar"></i>
+                                <span>Tomorrow, June 16, 2023</span>
+                            </div>
+                            <div class="detail-item">
+                                <i class="fas fa-clock"></i>
+                                <span>2:00 PM</span>
+                            </div>
+                            <div class="detail-item">
+                                <i class="fas fa-user-md"></i>
+                                <span>Dr. Brown</span>
+                            </div>
+                            <div class="detail-item">
+                                <i class="fas fa-map-marker-alt"></i>
+                                <span>456 Dental Clinic, San Francisco</span>
+                            </div>
+                        </div>
+                        <div class="appointment-actions">
+                            <button class="btn btn-outline-primary">
+                                <i class="fas fa-map me-2"></i>Directions
+                            </button>
+                            <button class="btn btn-outline-danger">
+                                <i class="fas fa-times me-2"></i>Cancel
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Appointment History -->
+                <div class="history-section">
+                    <h3>Appointment History</h3>
+                    
+                    <div class="appointment-card">
+                        <div class="appointment-header">
+                            <h4 class="appointment-title">Haircut</h4>
+                            <span class="appointment-status status-completed">Completed</span>
+                        </div>
+                        <div class="appointment-details">
+                            <div class="detail-item">
+                                <i class="fas fa-calendar"></i>
+                                <span>June 10, 2023</span>
+                            </div>
+                            <div class="detail-item">
+                                <i class="fas fa-clock"></i>
+                                <span>11:00 AM</span>
+                            </div>
+                            <div class="detail-item">
+                                <i class="fas fa-user-md"></i>
+                                <span>Sarah (Stylist)</span>
+                            </div>
+                            <div class="detail-item">
+                                <i class="fas fa-map-marker-alt"></i>
+                                <span>789 Hair Salon, San Francisco</span>
+                            </div>
+                        </div>
+                        <div class="appointment-actions">
+                            <button class="btn btn-outline-primary">
+                                <i class="fas fa-star me-2"></i>Rate Service
+                            </button>
+                            <button class="btn btn-outline-primary">
+                                <i class="fas fa-redo me-2"></i>Book Again
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="appointment-card">
+                        <div class="appointment-header">
+                            <h4 class="appointment-title">Manicure</h4>
+                            <span class="appointment-status status-cancelled">Cancelled</span>
+                        </div>
+                        <div class="appointment-details">
+                            <div class="detail-item">
+                                <i class="fas fa-calendar"></i>
+                                <span>June 5, 2023</span>
+                            </div>
+                            <div class="detail-item">
+                                <i class="fas fa-clock"></i>
+                                <span>3:30 PM</span>
+                            </div>
+                            <div class="detail-item">
+                                <i class="fas fa-user-md"></i>
+                                <span>Jessica (Nail Technician)</span>
+                            </div>
+                            <div class="detail-item">
+                                <i class="fas fa-map-marker-alt"></i>
+                                <span>321 Nail Spa, San Francisco</span>
+                            </div>
+                        </div>
+                        <div class="appointment-actions">
+                            <button class="btn btn-outline-primary">
+                                <i class="fas fa-redo me-2"></i>Book Again
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Sidebar -->
+            <div class="col-lg-4">
+                <!-- Book Appointment Card -->
+                <div class="book-appointment-card">
+                    <div class="icon">
+                        <i class="fas fa-calendar-plus"></i>
+                    </div>
+                    <h3>Need a Service?</h3>
+                    <p>Book a new appointment with our trusted service providers.</p>
+                    <a href="services.html" class="btn btn-primary">
+                        <i class="fas fa-calendar-plus me-2"></i>Book Appointment
+                    </a>
+                </div>
+                
+                <!-- Queue Status Card -->
+                <div class="appointment-card">
+                    <div class="appointment-header">
+                        <h4 class="appointment-title">Current Queue Status</h4>
+                    </div>
+                    <div class="appointment-details">
+                        <div class="detail-item">
+                            <i class="fas fa-user-md"></i>
+                            <span>Dr. Smith's Office</span>
+                        </div>
+                        <div class="detail-item">
+                            <i class="fas fa-users"></i>
+                            <span>3 people ahead of you</span>
+                        </div>
+                        <div class="detail-item">
+                            <i class="fas fa-clock"></i>
+                            <span>Estimated wait: 15 minutes</span>
+                        </div>
+                    </div>
+                    <div class="progress mb-3" style="height: 10px;">
+                        <div class="progress-bar bg-success" role="progressbar" style="width: 75%;" aria-valuenow="75" aria-valuemin="0" aria-valuemax="100"></div>
+                    </div>
+                    <div class="appointment-actions">
+                        <button class="btn btn-primary">
+                            <i class="fas fa-bell me-2"></i>Notify When Ready
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Location Sharing Card -->
+                <div class="appointment-card">
+                    <div class="appointment-header">
+                        <h4 class="appointment-title">Location Sharing</h4>
+                    </div>
+                    <div class="appointment-details">
+                        <div class="detail-item">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <span>Your location is being shared</span>
+                        </div>
+                        <div class="detail-item">
+                            <i class="fas fa-clock"></i>
+                            <span>Last updated: 2 minutes ago</span>
+                        </div>
+                    </div>
+                    <div class="map-container" style="height: 150px; margin-bottom: 1rem;">
+                        <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3153.835434509374!2d-122.419415684682!3d37.77492997975854!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x8085809c6c8f4459%3A0xb10ed6d9b5050fa5!2sSan%20Francisco%2C%20CA%2C%20USA!5e0!3m2!1sen!2s!4v1647881234567!5m2!1sen!2s" allowfullscreen="" loading="lazy"></iframe>
+                    </div>
+                    <div class="appointment-actions">
+                        <button class="btn btn-outline-primary">
+                            <i class="fas fa-sync-alt me-2"></i>Update Location
+                        </button>
+                        <button class="btn btn-outline-danger">
+                            <i class="fas fa-stop-circle me-2"></i>Stop Sharing
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Dashboard Script -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // In a real application, you would fetch the user's appointments from the server
+            // and update the UI accordingly
+            
+            // Example of how to handle appointment cancellation
+            const cancelButtons = document.querySelectorAll('.btn-outline-danger');
+            
+            cancelButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    if (confirm('Are you sure you want to cancel this appointment?')) {
+                        // In a real application, you would send a request to the server to cancel the appointment
+                        alert('Appointment cancelled successfully!');
+                    }
+                });
+            });
+            
+            // Example of how to handle location sharing
+            const updateLocationButton = document.querySelector('.btn-outline-primary i.fa-sync-alt').parentNode;
+            const stopSharingButton = document.querySelector('.btn-outline-danger i.fa-stop-circle').parentNode;
+            
+            updateLocationButton.addEventListener('click', function() {
+                // In a real application, you would request the user's location and update it on the server
+                alert('Location updated successfully!');
+            });
+            
+            stopSharingButton.addEventListener('click', function() {
+                // In a real application, you would stop sharing the user's location with the server
+                alert('Location sharing stopped!');
+            });
+        });
+    </script>
+</body>
+</html> 

@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register - Queue-less Appointment Booking System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #4e73df;
+            --secondary-color: #1cc88a;
+            --dark-color: #5a5c69;
+            --light-color: #f8f9fc;
+            --danger-color: #e74a3b;
+            --warning-color: #f6c23e;
+            --info-color: #36b9cc;
+        }
+        
+        body {
+            font-family: 'Nunito', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: var(--light-color);
+            color: var(--dark-color);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .navbar {
+            background-color: white;
+            box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+        }
+        
+        .navbar-brand {
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+        
+        .register-container {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem 0;
+        }
+        
+        .register-card {
+            background-color: white;
+            border-radius: 0.5rem;
+            box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+            overflow: hidden;
+            width: 100%;
+            max-width: 900px;
+        }
+        
+        .register-header {
+            background: linear-gradient(135deg, var(--primary-color) 0%, #224abe 100%);
+            color: white;
+            padding: 2rem;
+            text-align: center;
+        }
+        
+        .register-header h1 {
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+        
+        .register-body {
+            padding: 2rem;
+        }
+        
+        .user-type-selector {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 2rem;
+            border-bottom: 1px solid #e3e6f0;
+            padding-bottom: 1rem;
+        }
+        
+        .user-type-btn {
+            padding: 0.75rem 1.5rem;
+            margin: 0 0.5rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        
+        .user-type-btn.active {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        .user-type-btn:not(.active) {
+            background-color: #f8f9fc;
+            color: var(--dark-color);
+        }
+        
+        .form-floating {
+            margin-bottom: 1rem;
+        }
+        
+        .form-floating input, .form-floating select {
+            border-radius: 0.5rem;
+        }
+        
+        .form-floating label {
+            padding: 1rem 0.75rem;
+        }
+        
+        .btn-register {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+            padding: 0.75rem 1.5rem;
+            font-weight: 600;
+            border-radius: 0.5rem;
+            width: 100%;
+            margin-top: 1rem;
+        }
+        
+        .btn-register:hover {
+            background-color: #2e59d9;
+            border-color: #2653d4;
+        }
+        
+        .register-footer {
+            text-align: center;
+            margin-top: 1.5rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid #e3e6f0;
+        }
+        
+        .register-footer a {
+            color: var(--primary-color);
+            text-decoration: none;
+        }
+        
+        .register-footer a:hover {
+            text-decoration: underline;
+        }
+        
+        .social-register {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+        
+        .social-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            transition: all 0.3s;
+        }
+        
+        .social-btn:hover {
+            transform: translateY(-3px);
+        }
+        
+        .facebook {
+            background-color: #3b5998;
+        }
+        
+        .google {
+            background-color: #db4437;
+        }
+        
+        .twitter {
+            background-color: #1da1f2;
+        }
+        
+        .footer {
+            background-color: white;
+            padding: 1.5rem 0;
+            margin-top: auto;
+            box-shadow: 0 -0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+        }
+        
+        @media (max-width: 768px) {
+            .register-card {
+                margin: 1rem;
+            }
+            
+            .register-header {
+                padding: 1.5rem;
+            }
+            
+            .register-body {
+                padding: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-light">
+        <div class="container">
+            <a class="navbar-brand" href="index.html">QueueLess</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="index.html">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="services.html">Services</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="about.html">About</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="contact.html">Contact</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link btn btn-primary text-white ms-2 px-3" href="login.html">Login</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Register Section -->
+    <section class="register-container">
+        <div class="container">
+            <div class="register-card">
+                <div class="register-header">
+                    <h1>Create an Account</h1>
+                    <p>Join QueueLess to book appointments without waiting in line</p>
+                </div>
+                <div class="register-body">
+                    <div class="user-type-selector">
+                        <button class="user-type-btn active" id="customerBtn">Customer</button>
+                        <button class="user-type-btn" id="providerBtn">Service Provider</button>
+                    </div>
+                    
+                    <!-- Customer Registration Form -->
+                    <form id="customerRegisterForm" action="customer-dashboard.html">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-floating mb-3">
+                                    <input type="text" class="form-control" id="customerFirstName" placeholder="First Name" required>
+                                    <label for="customerFirstName">First Name</label>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-floating mb-3">
+                                    <input type="text" class="form-control" id="customerLastName" placeholder="Last Name" required>
+                                    <label for="customerLastName">Last Name</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-floating mb-3">
+                            <input type="email" class="form-control" id="customerEmail" placeholder="name@example.com" required>
+                            <label for="customerEmail">Email address</label>
+                        </div>
+                        <div class="form-floating mb-3">
+                            <input type="tel" class="form-control" id="customerPhone" placeholder="Phone Number" required>
+                            <label for="customerPhone">Phone Number</label>
+                        </div>
+                        <div class="form-floating mb-3">
+                            <input type="password" class="form-control" id="customerPassword" placeholder="Password" required>
+                            <label for="customerPassword">Password</label>
+                        </div>
+                        <div class="form-floating mb-3">
+                            <input type="password" class="form-control" id="customerConfirmPassword" placeholder="Confirm Password" required>
+                            <label for="customerConfirmPassword">Confirm Password</label>
+                        </div>
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" id="termsCheck" required>
+                            <label class="form-check-label" for="termsCheck">
+                                I agree to the <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>
+                            </label>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-register">Register as Customer</button>
+                    </form>
+                    
+                    <!-- Provider Registration Form (Hidden by default) -->
+                    <form id="providerRegisterForm" action="provider-dashboard.html" style="display: none;">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-floating mb-3">
+                                    <input type="text" class="form-control" id="providerFirstName" placeholder="First Name" required>
+                                    <label for="providerFirstName">First Name</label>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-floating mb-3">
+                                    <input type="text" class="form-control" id="providerLastName" placeholder="Last Name" required>
+                                    <label for="providerLastName">Last Name</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-floating mb-3">
+                            <input type="email" class="form-control" id="providerEmail" placeholder="name@example.com" required>
+                            <label for="providerEmail">Email address</label>
+                        </div>
+                        <div class="form-floating mb-3">
+                            <input type="tel" class="form-control" id="providerPhone" placeholder="Phone Number" required>
+                            <label for="providerPhone">Phone Number</label>
+                        </div>
+                        <div class="form-floating mb-3">
+                            <select class="form-select" id="providerType" required>
+                                <option value="" selected disabled>Select a service type</option>
+                                <option value="medical">Medical</option>
+                                <option value="dental">Dental</option>
+                                <option value="salon">Salon</option>
+                                <option value="banking">Banking</option>
+                                <option value="other">Other</option>
+                            </select>
+                            <label for="providerType">Service Type</label>
+                        </div>
+                        <div class="form-floating mb-3">
+                            <input type="text" class="form-control" id="providerBusinessName" placeholder="Business Name" required>
+                            <label for="providerBusinessName">Business Name</label>
+                        </div>
+                        <div class="form-floating mb-3">
+                            <input type="text" class="form-control" id="providerAddress" placeholder="Business Address" required>
+                            <label for="providerAddress">Business Address</label>
+                        </div>
+                        <div class="form-floating mb-3">
+                            <input type="password" class="form-control" id="providerPassword" placeholder="Password" required>
+                            <label for="providerPassword">Password</label>
+                        </div>
+                        <div class="form-floating mb-3">
+                            <input type="password" class="form-control" id="providerConfirmPassword" placeholder="Confirm Password" required>
+                            <label for="providerConfirmPassword">Confirm Password</label>
+                        </div>
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" id="termsCheckProvider" required>
+                            <label class="form-check-label" for="termsCheckProvider">
+                                I agree to the <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>
+                            </label>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-register">Register as Service Provider</button>
+                    </form>
+                    
+                    <div class="register-footer">
+                        <p>Already have an account? <a href="login.html">Login here</a></p>
+                        
+                        <div class="social-register">
+                            <a href="#" class="social-btn facebook"><i class="fab fa-facebook-f"></i></a>
+                            <a href="#" class="social-btn google"><i class="fab fa-google"></i></a>
+                            <a href="#" class="social-btn twitter"><i class="fab fa-twitter"></i></a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <p class="mb-0">&copy; 2023 QueueLess. All rights reserved.</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <a href="#" class="text-decoration-none text-dark me-3">Privacy Policy</a>
+                    <a href="#" class="text-decoration-none text-dark">Terms of Service</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Register Script -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const customerBtn = document.getElementById('customerBtn');
+            const providerBtn = document.getElementById('providerBtn');
+            const customerForm = document.getElementById('customerRegisterForm');
+            const providerForm = document.getElementById('providerRegisterForm');
+            
+            customerBtn.addEventListener('click', function() {
+                customerBtn.classList.add('active');
+                providerBtn.classList.remove('active');
+                customerForm.style.display = 'block';
+                providerForm.style.display = 'none';
+            });
+            
+            providerBtn.addEventListener('click', function() {
+                providerBtn.classList.add('active');
+                customerBtn.classList.remove('active');
+                providerForm.style.display = 'block';
+                customerForm.style.display = 'none';
+            });
+        });
+    </script>
+</body>
+</html> 

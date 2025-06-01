@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Book Appointment - QueueLess</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        :root {
+            --primary-color: #4e73df;
+            --secondary-color: #1cc88a;
+            --dark-color: #5a5c69;
+            --light-color: #f8f9fc;
+        }
+        
+        body {
+            font-family: 'Nunito', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: var(--light-color);
+            color: var(--dark-color);
+        }
+        
+        .booking-container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+        
+        .booking-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        
+        .booking-header h1 {
+            color: var(--primary-color);
+            font-weight: 700;
+        }
+        
+        .booking-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+        }
+        
+        .booking-form {
+            background-color: white;
+            border-radius: 0.5rem;
+            box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+            padding: 2rem;
+        }
+        
+        .form-label {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+        
+        .form-control:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.25rem rgba(78, 115, 223, 0.25);
+        }
+        
+        .providers-map {
+            background-color: white;
+            border-radius: 0.5rem;
+            box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+            padding: 1rem;
+            height: 600px;
+        }
+        
+        #map {
+            width: 100%;
+            height: 100%;
+            border-radius: 0.5rem;
+        }
+        
+        .provider-popup {
+            padding: 10px;
+        }
+        
+        .provider-popup h4 {
+            color: var(--primary-color);
+            margin-bottom: 5px;
+        }
+        
+        .provider-popup p {
+            margin-bottom: 5px;
+        }
+        
+        .time-slots {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+        
+        .time-slot {
+            padding: 0.5rem;
+            border: 1px solid #e3e6f0;
+            border-radius: 0.25rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .time-slot:hover {
+            border-color: var(--primary-color);
+            background-color: rgba(78, 115, 223, 0.05);
+        }
+        
+        .time-slot.selected {
+            background-color: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+        
+        .btn-primary {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+        
+        .btn-primary:hover {
+            background-color: #2e59d9;
+            border-color: #2653d4;
+        }
+        
+        @media (max-width: 768px) {
+            .booking-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .providers-map {
+                height: 400px;
+            }
+        }
+        
+        .sub-services {
+            display: none;
+            margin-top: 1rem;
+        }
+
+        .sub-services.active {
+            display: block;
+        }
+
+        .sub-service-card {
+            border: 1px solid #e3e6f0;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin-bottom: 0.5rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .sub-service-card:hover {
+            border-color: var(--primary-color);
+            background-color: rgba(78, 115, 223, 0.05);
+        }
+
+        .sub-service-card.selected {
+            border-color: var(--primary-color);
+            background-color: rgba(78, 115, 223, 0.1);
+        }
+
+        .sub-service-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .sub-service-price {
+            color: var(--primary-color);
+            font-weight: 600;
+        }
+
+        .sub-service-duration {
+            font-size: 0.875rem;
+            color: var(--dark-color);
+        }
+
+        .sub-service-description {
+            font-size: 0.875rem;
+            color: #858796;
+            margin-bottom: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="booking-container">
+        <div class="booking-header">
+            <h1>Book Your Appointment</h1>
+            <p>Select a service and find nearby providers</p>
+        </div>
+        
+        <div class="booking-content">
+            <!-- Booking Form -->
+            <div class="booking-form">
+                <form id="bookingForm">
+                    <div class="mb-3">
+                        <label class="form-label">Select Service</label>
+                        <select class="form-select" id="serviceType" required>
+                            <option value="">Choose a service</option>
+                            <option value="hair">Hair Services</option>
+                            <option value="nails">Nail Services</option>
+                            <option value="skin">Skin Care</option>
+                            <option value="medical">Medical Services</option>
+                            <option value="dental">Dental Services</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Sub-services section -->
+                    <div id="hairServices" class="sub-services">
+                        <label class="form-label">Select Hair Service</label>
+                        <div class="sub-service-card" data-service="haircut">
+                            <div class="sub-service-header">
+                                <h6 class="mb-0">Haircut</h6>
+                                <span class="sub-service-price">₹500</span>
+                            </div>
+                            <p class="sub-service-duration"><i class="far fa-clock me-1"></i> 30 minutes</p>
+                            <p class="sub-service-description">Professional haircut including wash and style</p>
+                        </div>
+                        <div class="sub-service-card" data-service="coloring">
+                            <div class="sub-service-header">
+                                <h6 class="mb-0">Hair Coloring</h6>
+                                <span class="sub-service-price">₹2000</span>
+                            </div>
+                            <p class="sub-service-duration"><i class="far fa-clock me-1"></i> 120 minutes</p>
+                            <p class="sub-service-description">Full hair coloring with premium products</p>
+                        </div>
+                        <div class="sub-service-card" data-service="styling">
+                            <div class="sub-service-header">
+                                <h6 class="mb-0">Hair Styling</h6>
+                                <span class="sub-service-price">₹800</span>
+                            </div>
+                            <p class="sub-service-duration"><i class="far fa-clock me-1"></i> 45 minutes</p>
+                            <p class="sub-service-description">Professional styling for any occasion</p>
+                        </div>
+                    </div>
+
+                    <div id="nailServices" class="sub-services">
+                        <label class="form-label">Select Nail Service</label>
+                        <div class="sub-service-card" data-service="manicure">
+                            <div class="sub-service-header">
+                                <h6 class="mb-0">Classic Manicure</h6>
+                                <span class="sub-service-price">₹600</span>
+                            </div>
+                            <p class="sub-service-duration"><i class="far fa-clock me-1"></i> 45 minutes</p>
+                            <p class="sub-service-description">Complete hand care with polish</p>
+                        </div>
+                        <div class="sub-service-card" data-service="pedicure">
+                            <div class="sub-service-header">
+                                <h6 class="mb-0">Deluxe Pedicure</h6>
+                                <span class="sub-service-price">₹800</span>
+                            </div>
+                            <p class="sub-service-duration"><i class="far fa-clock me-1"></i> 60 minutes</p>
+                            <p class="sub-service-description">Luxury foot care treatment</p>
+                        </div>
+                        <div class="sub-service-card" data-service="nailart">
+                            <div class="sub-service-header">
+                                <h6 class="mb-0">Nail Art</h6>
+                                <span class="sub-service-price">₹400</span>
+                            </div>
+                            <p class="sub-service-duration"><i class="far fa-clock me-1"></i> 30 minutes</p>
+                            <p class="sub-service-description">Custom nail art and design</p>
+                        </div>
+                    </div>
+
+                    <div id="skinServices" class="sub-services">
+                        <label class="form-label">Select Skin Care Service</label>
+                        <div class="sub-service-card" data-service="facial">
+                            <div class="sub-service-header">
+                                <h6 class="mb-0">Classic Facial</h6>
+                                <span class="sub-service-price">₹1200</span>
+                            </div>
+                            <p class="sub-service-duration"><i class="far fa-clock me-1"></i> 60 minutes</p>
+                            <p class="sub-service-description">Deep cleansing facial treatment</p>
+                        </div>
+                        <div class="sub-service-card" data-service="cleanup">
+                            <div class="sub-service-header">
+                                <h6 class="mb-0">Skin Cleanup</h6>
+                                <span class="sub-service-price">₹800</span>
+                            </div>
+                            <p class="sub-service-duration"><i class="far fa-clock me-1"></i> 45 minutes</p>
+                            <p class="sub-service-description">Basic skin cleansing and care</p>
+                        </div>
+                        <div class="sub-service-card" data-service="treatment">
+                            <div class="sub-service-header">
+                                <h6 class="mb-0">Special Treatment</h6>
+                                <span class="sub-service-price">₹2500</span>
+                            </div>
+                            <p class="sub-service-duration"><i class="far fa-clock me-1"></i> 90 minutes</p>
+                            <p class="sub-service-description">Advanced skin treatment therapy</p>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Select Provider</label>
+                        <select class="form-select" id="providerSelect" required>
+                            <option value="">Choose a provider</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Date</label>
+                        <input type="date" class="form-control" id="appointmentDate" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Time Slot</label>
+                        <div class="time-slots">
+                            <div class="time-slot">9:00 AM</div>
+                            <div class="time-slot">10:00 AM</div>
+                            <div class="time-slot">11:00 AM</div>
+                            <div class="time-slot">12:00 PM</div>
+                            <div class="time-slot">1:00 PM</div>
+                            <div class="time-slot">2:00 PM</div>
+                            <div class="time-slot">3:00 PM</div>
+                            <div class="time-slot">4:00 PM</div>
+                            <div class="time-slot">5:00 PM</div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Additional Notes</label>
+                        <textarea class="form-control" id="notes" rows="3"></textarea>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary w-100">Book Appointment</button>
+                </form>
+            </div>
+            
+            <!-- Providers Map -->
+            <div class="providers-map">
+                <div id="map"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    
+    <!-- Booking Script -->
+    <script>
+        // Sample provider data (in a real application, this would come from a database)
+        const providers = [
+            {
+                id: 1,
+                name: "Style Studio",
+                type: "hair",
+                location: { lat: 17.3850, lng: 78.4867 }, // Hyderabad coordinates
+                address: "123 Main St, Hyderabad"
+            },
+            {
+                id: 2,
+                name: "Nail Haven",
+                type: "nails",
+                location: { lat: 17.3753, lng: 78.4744 }, // Different location in Hyderabad
+                address: "456 Market St, Hyderabad"
+            },
+            {
+                id: 3,
+                name: "Skin Care Center",
+                type: "skin",
+                location: { lat: 17.3616, lng: 78.4747 }, // Another location in Hyderabad
+                address: "789 Mission St, Hyderabad"
+            }
+        ];
+        
+        let map;
+        let markers = [];
+        let customerMarker;
+        let watchId;
+        let customerLocation = null;
+
+        // Initialize map
+        function initMap() {
+            // Create map centered on Hyderabad
+            map = L.map('map').setView([17.3850, 78.4867], 13);
+            
+            // Add OpenStreetMap tiles
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors'
+            }).addTo(map);
+            
+            // Start tracking customer location
+            startLocationTracking();
+            
+            // Add markers for all providers
+            updateMapMarkers();
+        }
+
+        // Function to start tracking customer location
+        function startLocationTracking() {
+            if ("geolocation" in navigator) {
+                // Get initial location
+                navigator.geolocation.getCurrentPosition(
+                    position => {
+                        customerLocation = {
+                            lat: position.coords.latitude,
+                            lng: position.coords.longitude
+                        };
+                        updateCustomerMarker();
+                    },
+                    error => {
+                        console.error("Error getting location:", error);
+                        alert("Please enable location services to use this feature.");
+                    }
+                );
+
+                // Start watching location
+                watchId = navigator.geolocation.watchPosition(
+                    position => {
+                        customerLocation = {
+                            lat: position.coords.latitude,
+                            lng: position.coords.longitude
+                        };
+                        updateCustomerMarker();
+                        // Send location update to server
+                        updateLocationOnServer();
+                    },
+                    error => {
+                        console.error("Error tracking location:", error);
+                    },
+                    {
+                        enableHighAccuracy: true,
+                        maximumAge: 30000,
+                        timeout: 27000
+                    }
+                );
+            } else {
+                alert("Geolocation is not supported by your browser");
+            }
+        }
+
+        // Function to update customer marker on map
+        function updateCustomerMarker() {
+            if (!customerLocation) return;
+
+            if (customerMarker) {
+                map.removeLayer(customerMarker);
+            }
+
+            const customerIcon = L.divIcon({
+                html: '<i class="fas fa-user-circle fa-2x" style="color: #4e73df;"></i>',
+                className: 'customer-marker',
+                iconSize: [24, 24]
+            });
+
+            customerMarker = L.marker([customerLocation.lat, customerLocation.lng], {
+                icon: customerIcon
+            })
+            .bindPopup('Your Location')
+            .addTo(map);
+        }
+
+        // Function to send location update to server
+        function updateLocationOnServer() {
+            if (!customerLocation) return;
+
+            // In a real application, you would send this to your server
+            // For now, we'll store it in localStorage for demo purposes
+            localStorage.setItem('customerLocation', JSON.stringify({
+                location: customerLocation,
+                timestamp: new Date().toISOString()
+            }));
+        }
+        
+        function updateMapMarkers() {
+            // Clear existing markers
+            markers.forEach(marker => map.removeLayer(marker));
+            markers = [];
+            
+            // Get selected service type
+            const selectedService = document.getElementById('serviceType').value;
+            
+            // Filter providers based on selected service
+            const filteredProviders = selectedService 
+                ? providers.filter(provider => provider.type === selectedService)
+                : providers;
+            
+            // Update provider select dropdown
+            const providerSelect = document.getElementById('providerSelect');
+            providerSelect.innerHTML = '<option value="">Choose a provider</option>';
+            
+            filteredProviders.forEach(provider => {
+                // Add marker to map
+                const marker = L.marker([provider.location.lat, provider.location.lng])
+                    .bindPopup(`
+                        <div class="provider-popup">
+                            <h4>${provider.name}</h4>
+                            <p>${provider.address}</p>
+                            <p><strong>Service:</strong> ${provider.type}</p>
+                        </div>
+                    `);
+                
+                marker.addTo(map);
+                markers.push(marker);
+                
+                // Add option to select dropdown
+                const option = document.createElement('option');
+                option.value = provider.id;
+                option.textContent = provider.name;
+                providerSelect.appendChild(option);
+            });
+            
+            // Fit map bounds to show all markers and customer location
+            if (markers.length > 0) {
+                const allMarkers = [...markers];
+                if (customerMarker) {
+                    allMarkers.push(customerMarker);
+                }
+                const group = new L.featureGroup(allMarkers);
+                map.fitBounds(group.getBounds().pad(0.1));
+            }
+        }
+        
+        // Initialize map when page loads
+        document.addEventListener('DOMContentLoaded', initMap);
+        
+        // Handle service type change
+        document.getElementById('serviceType').addEventListener('change', function(e) {
+            // Hide all sub-services first
+            document.querySelectorAll('.sub-services').forEach(el => el.classList.remove('active'));
+            
+            // Show selected service's sub-services
+            const selectedService = e.target.value;
+            if (selectedService) {
+                const subServicesEl = document.getElementById(selectedService + 'Services');
+                if (subServicesEl) {
+                    subServicesEl.classList.add('active');
+                }
+            }
+            
+            // Update providers on map based on service type
+            updateProvidersOnMap(selectedService);
+        });
+        
+        // Handle time slot selection
+        document.querySelectorAll('.time-slot').forEach(slot => {
+            slot.addEventListener('click', function() {
+                document.querySelectorAll('.time-slot').forEach(s => s.classList.remove('selected'));
+                this.classList.add('selected');
+            });
+        });
+        
+        // Handle form submission
+        document.getElementById('bookingForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const selectedTime = document.querySelector('.time-slot.selected');
+            if (!selectedTime) {
+                alert('Please select a time slot');
+                return;
+            }
+
+            if (!customerLocation) {
+                alert('Please enable location services to book an appointment');
+                return;
+            }
+            
+            // Get selected sub-service details
+            const selectedService = JSON.parse(localStorage.getItem('selectedService'));
+            if (!selectedService) {
+                alert('Please select a specific service');
+                return;
+            }
+            
+            // Get other form data and combine with service details
+            const formData = {
+                service: selectedService,
+                provider: document.getElementById('providerSelect').value,
+                date: document.getElementById('appointmentDate').value,
+                time: selectedTime.textContent,
+                notes: document.getElementById('notes').value,
+                customerLocation: customerLocation
+            };
+            
+            // Here you would typically send this data to your server
+            console.log('Booking details:', formData);
+            
+            // For demo purposes, store in localStorage
+            localStorage.setItem('currentBooking', JSON.stringify(formData));
+            
+            // Redirect to confirmation page or show success message
+            alert('Booking successful! You will receive a confirmation shortly.');
+        });
+
+        // Cleanup when page is unloaded
+        window.addEventListener('beforeunload', () => {
+            if (watchId) {
+                navigator.geolocation.clearWatch(watchId);
+            }
+        });
+
+        // Add this after the existing provider data
+        const serviceDetails = {
+            hair: {
+                haircut: { price: 500, duration: 30, description: "Professional haircut including wash and style" },
+                coloring: { price: 2000, duration: 120, description: "Full hair coloring with premium products" },
+                styling: { price: 800, duration: 45, description: "Professional styling for any occasion" }
+            },
+            nails: {
+                manicure: { price: 600, duration: 45, description: "Complete hand care with polish" },
+                pedicure: { price: 800, duration: 60, description: "Luxury foot care treatment" },
+                nailart: { price: 400, duration: 30, description: "Custom nail art and design" }
+            },
+            skin: {
+                facial: { price: 1200, duration: 60, description: "Deep cleansing facial treatment" },
+                cleanup: { price: 800, duration: 45, description: "Basic skin cleansing and care" },
+                treatment: { price: 2500, duration: 90, description: "Advanced skin treatment therapy" }
+            }
+        };
+
+        // Add event listeners for sub-service selection
+        document.querySelectorAll('.sub-service-card').forEach(card => {
+            card.addEventListener('click', function() {
+                // Remove selection from all cards in the same service category
+                this.closest('.sub-services').querySelectorAll('.sub-service-card').forEach(c => {
+                    c.classList.remove('selected');
+                });
+                
+                // Add selection to clicked card
+                this.classList.add('selected');
+                
+                // Store selected sub-service details
+                const serviceType = document.getElementById('serviceType').value;
+                const subService = this.dataset.service;
+                const details = serviceDetails[serviceType][subService];
+                
+                // You can store these details in the form or use them as needed
+                localStorage.setItem('selectedService', JSON.stringify({
+                    type: serviceType,
+                    subService: subService,
+                    details: details
+                }));
+            });
+        });
+    </script>
+</body>
+</html> 
